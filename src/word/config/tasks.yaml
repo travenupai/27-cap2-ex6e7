@@ -1,0 +1,9 @@
+#tasks.yaml
+word_count_task:
+  description: >
+    Analise o texto fornecido e conte o número de palavras.
+    Texto: {text}
+  expected_output: >
+    Uma string que indica o número total de palavras encontradas no texto.
+  agent: word_counter
+

@@ -1,0 +1,85 @@
+from crewai.tools import BaseTool
+from typing import Type
+from pydantic import BaseModel, Field
+
+class WordCountTool(BaseTool):
+    name: str = "WordCountTool"
+    description: str = (
+        "Esta ferramenta conta o número de palavras em um texto fornecido.\n"
+        "Entrada: um texto como string.\n"
+        "Saída: uma string descrevendo o total de palavras encontradas."
+    )
+
+    def _run(self, text: str) -> str:
+        word_count = len(text.split())
+        return f"O texto fornecido contém {word_count} palavras."
+
+    async def _arun(self, text: str) -> str:
+        # Implementação assíncrona, se necessário
+        word_count = len(text.split())
+        return f"O texto fornecido contém {word_count} palavras."
+        
+        
+        
+        
+from crewai import Agent, Crew, Process, Task
+from crewai.project import CrewBase, agent, crew, task
+
+from src.word.tools.custom_tool import WordCountTool
+
+@CrewBase
+class WordCountCrew():
+    """Word Count Crew"""
+
+    agents_config = 'config/agents.yaml'
+    tasks_config = 'config/tasks.yaml'
+
+    @agent
+    def word_counter(self) -> Agent:
+        return Agent(
+            config=self.agents_config['word_counter'],
+            tools=[WordCountTool()],
+            verbose=True
+        )
+
+    @task
+    def word_count_task(self) -> Task:
+        return Task(
+            config=self.tasks_config['word_count_task'],
+        )
+
+    @crew
+    def crew(self) -> Crew:
+        """Cria a Word Count Crew"""
+        return Crew(
+            agents=self.agents,  # Criado automaticamente pelo decorador @agent
+            tasks=self.tasks,    # Criado automaticamente pelo decorador @task
+            process=Process.sequential,
+            verbose=True,
+            
+            
+            
+#!/usr/bin/env python
+import sys
+import time
+import warnings
+
+from word.crew import WordCountCrew
+
+warnings.filterwarnings("ignore", category=SyntaxWarning, module="pysbd")
+
+def run():
+    """
+    Executa a crew.
+    """
+    # Texto de entrada com 60 palavras
+    input_text = "Este é um exemplo simples de texto que contém exatamente vinte palavras para testar nossa ferramenta de contagem de palavras. Este é um exemplo simples de texto que contém exatamente vinte palavras para testar nossa ferramenta de contagem de palavras.Este é um exemplo simples de texto que contém exatamente vinte palavras para testar nossa ferramenta de contagem de palavras."
+
+    inputs = {
+        'text': input_text
+    }
+
+    WordCountCrew().crew().kickoff(inputs=inputs)
+
+if __name__ == "__main__":
+    run()
